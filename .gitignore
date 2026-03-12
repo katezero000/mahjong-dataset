@@ -1,0 +1,21 @@
+# YOLO generated dataset and training outputs
+yolo_dataset/
+runs/
+
+# YOLO base model weights (downloaded automatically by Ultralytics)
+*.pt
+
+# Annotated result images produced by predict_hand.py
+*_result.jpg
+*_result.png
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.env
+.venv/
+
+# OS
+.DS_Store
+Thumbs.db
