@@ -127,14 +127,86 @@ Optional arguments:
 
 ### 2. Train
 
-Install [Ultralytics](https://docs.ultralytics.com/) and start training:
+The easiest way is to use the included `train.py` script, which handles both dataset preparation and training in a single command:
 
 ```bash
 pip install ultralytics
+python train.py
+```
+
+This runs 100 epochs with `yolov8n.pt` by default and saves weights to `runs/mahjong/train/weights/`.
+
+**Common options:**
+
+| Argument | Default | Description |
+|---|---|---|
+| `--epochs` | `100` | Number of training epochs |
+| `--model` | `yolov8n.pt` | Base YOLO model to fine-tune |
+| `--imgsz` | `320` | Training image size |
+| `--batch` | `16` | Batch size |
+| `--project` | `runs/mahjong` | Directory for saving runs |
+| `--skip-prep` | _(flag)_ | Skip dataset prep if `yolo_dataset/` already exists |
+| `--resume` | _(path)_ | Resume from existing `.pt` weights |
+| `--device` | _(auto)_ | Device: `cpu`, `0` (GPU), `0,1` (multi-GPU) |
+
+**Example – fine-tune a larger model on GPU:**
+```bash
+python train.py --model yolov8s.pt --epochs 200 --imgsz 640 --device 0
+```
+
+Alternatively, you can call the YOLO CLI directly (after running `prepare_yolo_dataset.py`):
+```bash
 yolo detect train data=yolo_dataset/dataset.yaml model=yolov8n.pt epochs=100 imgsz=320
 ```
 
 A pre-built `dataset.yaml` template is also available at the root of this repository.
+
+### 3. Predict your mahjong hand
+
+Once training is complete, use `predict_hand.py` to identify tiles in any image:
+
+```bash
+python predict_hand.py hand.jpg
+```
+
+The script automatically locates the most recently trained weights in `runs/`.  You can also specify weights explicitly:
+
+```bash
+python predict_hand.py hand.jpg --model runs/mahjong/train/weights/best.pt
+```
+
+**Example output:**
+```
+Running inference on: hand.jpg
+
+==================================================
+  Detected 13 tile(s) in the image:
+==================================================
+   1. 1万 (characters-1)               (conf: 0.87)
+   2. 2万 (characters-2)               (conf: 0.91)
+   3. 3万 (characters-3)               (conf: 0.85)
+   4. 东风 (honors-east)               (conf: 0.79)
+   ...
+
+  Hand summary (sorted):
+       1万 (characters-1) x 1
+       2万 (characters-2) x 1
+       ...
+==================================================
+
+Annotated image saved to: hand_result.jpg
+```
+
+**Common options:**
+
+| Argument | Default | Description |
+|---|---|---|
+| `--model` | _(auto)_ | Path to `.pt` weights; auto-finds latest if omitted |
+| `--conf` | `0.25` | Minimum detection confidence |
+| `--iou` | `0.45` | NMS IoU threshold |
+| `--imgsz` | `320` | Inference image size (should match training `--imgsz`) |
+| `--output` | `<image>_result.jpg` | Path for the annotated output image |
+| `--no-save` | _(flag)_ | Do not save the annotated image |
 
 ## License
 Open sourced under MIT License
