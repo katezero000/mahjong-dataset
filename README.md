@@ -84,5 +84,57 @@ Refer the classes of mahjong tiles [here](https://en.wikipedia.org/wiki/Mahjong_
 
 Feel free contribute to this repo with your own data.
 
+## Training with YOLO
+
+This repository includes a script to convert the dataset into [YOLO](https://docs.ultralytics.com/) format for object-detection training.
+
+### 1. Prepare the dataset
+
+```bash
+python prepare_yolo_dataset.py
+```
+
+This creates a `yolo_dataset/` directory with the following layout:
+
+```
+yolo_dataset/
+    images/
+        train/   *.jpg   (80 % of images)
+        val/     *.jpg   (20 % of images)
+    labels/
+        train/   *.txt
+        val/     *.txt
+    dataset.yaml
+```
+
+Each label file contains one line in YOLO format:
+
+```
+<class_id> <cx> <cy> <width> <height>
+```
+
+Because every source image contains exactly one tile that fills the frame, the bounding box is set to the full image (`cx=0.5 cy=0.5 w=1.0 h=1.0`).  Class IDs are 0-indexed (label index from `data.csv` minus 1).
+
+Optional arguments:
+
+| Argument | Default | Description |
+|---|---|---|
+| `--val-split` | `0.2` | Fraction of images used for validation |
+| `--seed` | `42` | Random seed for reproducible splits |
+| `--images-dir` | `tiles-resized` | Source image directory |
+| `--csv` | `tiles-data/data.csv` | Label CSV file |
+| `--output` | `yolo_dataset` | Output directory |
+
+### 2. Train
+
+Install [Ultralytics](https://docs.ultralytics.com/) and start training:
+
+```bash
+pip install ultralytics
+yolo detect train data=yolo_dataset/dataset.yaml model=yolov8n.pt epochs=100 imgsz=320
+```
+
+A pre-built `dataset.yaml` template is also available at the root of this repository.
+
 ## License
 Open sourced under MIT License
